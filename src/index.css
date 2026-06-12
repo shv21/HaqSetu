@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --bg: #F6F8F7;
+  --surface: #FFFFFF;
+  --text-primary: #102A2D;
+  --text-secondary: #50656A;
+  --text-muted: #7B8F94;
+  --primary: #0F766E;
+  --primary-hover: #115E59;
+  --soft-accent: #E6F4F1;
+  --support: #2563EB;
+  --warning: #D97706;
+  --danger: #DC2626;
+  --border: #DDE7E5;
+  --success-bg: #DCFCE7;
+  --warning-bg: #FEF3C7;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::selection {
+  background: rgba(15, 118, 110, 0.16);
+}
+
+.shadow-soft {
+  box-shadow: 0 18px 40px rgba(15, 118, 110, 0.08);
+}
+
+.bg-soft {
+  background-color: var(--soft-accent);
+}
+
+.border-soft {
+  border-color: var(--border);
+}
+
+.btn-primary {
+  @apply inline-flex items-center justify-center rounded-full bg-primary px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-hover;
+}
+
+.btn-secondary {
+  @apply inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-primary hover:text-primary;
+}
+
+.btn-muted {
+  @apply inline-flex items-center justify-center rounded-full bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-200;
+}
