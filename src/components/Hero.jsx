@@ -1,4 +1,5 @@
 import translations from "../translations.js";
+import LanguageSelector from "./LanguageSelector.jsx";
 import { Link } from "react-router-dom";
 
 const features = [
