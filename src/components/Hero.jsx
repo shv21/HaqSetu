@@ -17,12 +17,12 @@ const features = [
   },
 ];
 
-export default function Hero({ lang }) {
+export default function Hero({ lang, setLang }) {
   const t = translations[lang] || translations.en;
   return (
     <section className="bg-[#F6F8F7]">
       <div className="mx-auto max-w-screen-xl px-4 py-14 sm:px-6 lg:px-8">
-        <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_460px] lg:items-center">
+        <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_460px] lg:items-start">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.35em] text-primary">
               {t.siteName}
@@ -74,25 +74,32 @@ export default function Hero({ lang }) {
               </div>
             </div>
           </div>
-          <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-soft">
-            <h2 className="text-xl font-semibold text-slate-900">
-              Why HaqSetu
-            </h2>
-            <div className="mt-6 space-y-4">
-              {features.map((feature) => (
-                <div
-                  key={feature.title}
-                  className="rounded-3xl bg-[#F6F8F7] p-5"
-                >
-                  <p className="text-sm font-semibold text-slate-900">
-                    {feature.title}
-                  </p>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">
-                    {feature.description}
-                  </p>
-                </div>
-              ))}
+          <div className="space-y-6">
+            <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-soft">
+              <h2 className="text-xl font-semibold text-slate-900">
+                Why HaqSetu
+              </h2>
+              <div className="mt-6 space-y-4">
+                {features.map((feature) => (
+                  <div
+                    key={feature.title}
+                    className="rounded-3xl bg-[#F6F8F7] p-5"
+                  >
+                    <p className="text-sm font-semibold text-slate-900">
+                      {feature.title}
+                    </p>
+                    <p className="mt-2 text-sm leading-6 text-slate-600">
+                      {feature.description}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
+            <LanguageSelector
+              lang={lang}
+              setLang={setLang}
+              wrapperClassName=""
+            />
           </div>
         </div>
       </div>

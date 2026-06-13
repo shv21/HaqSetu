@@ -6,10 +6,14 @@ const languageOptions = [
   { code: "mr", label: "मराठी" },
 ];
 
-export default function LanguageSelector({ lang, setLang }) {
+export default function LanguageSelector({
+  lang,
+  setLang,
+  wrapperClassName = "mx-auto max-w-screen-xl px-4 py-8 sm:px-6 lg:px-8",
+}) {
   const t = translations[lang] || translations.en;
   return (
-    <section className="mx-auto max-w-screen-xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className={wrapperClassName}>
       <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -41,6 +45,6 @@ export default function LanguageSelector({ lang, setLang }) {
           </p>
         </div>
       </div>
-    </section>
+    </div>
   );
 }

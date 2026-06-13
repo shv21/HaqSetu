@@ -31,8 +31,7 @@ export default function Home({ lang, setLang }) {
 
   return (
     <main>
-      <Hero lang={lang} />
-      <LanguageSelector lang={lang} setLang={setLang} />
+      <Hero lang={lang} setLang={setLang} />
 
       <section className="mx-auto max-w-screen-xl px-4 pb-10 sm:px-6 lg:px-8">
         <div className="grid gap-6 lg:grid-cols-3">
