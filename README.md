@@ -242,7 +242,7 @@ src/
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/haq-setu.git
+git clone https://github.com/shv21/HaqSetu.git
 cd haq-setu
 ```
 
