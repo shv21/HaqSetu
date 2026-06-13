@@ -12,10 +12,10 @@
   --primary: #0F766E;
   --primary-hover: #115E59;
   --soft-accent: #E6F4F1;
-  --support: #2563EB;
+  --support: #2263f0;
   --warning: #D97706;
   --danger: #DC2626;
-  --border: #DDE7E5;
+  --border: #d4dad8;
   --success-bg: #DCFCE7;
   --warning-bg: #FEF3C7;
 }
@@ -44,7 +44,7 @@ textarea {
 }
 
 ::selection {
-  background: rgba(15, 118, 110, 0.16);
+  background: rgba(9, 104, 96, 0.16);
 }
 
 .shadow-soft {
