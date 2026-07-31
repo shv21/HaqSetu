@@ -1,7 +1,7 @@
 import schemes from "../data/schemes.js";
 
 const OCCUPATION_MAP = {
-  student: ["student"],
+  student: ["student", "unemployed youth"],
   "informal worker": [
     "informal worker",
     "daily wage worker",
@@ -12,11 +12,18 @@ const OCCUPATION_MAP = {
   "daily wage worker": ["daily wage worker", "informal worker"],
   "self-employed": ["self-employed", "informal worker"],
   "street vendor": ["street vendor", "informal worker"],
-  homemaker: ["homemaker"],
+  homemaker: ["homemaker", "pregnant woman / mother"],
   farmer: ["farmer"],
   "unemployed youth": ["unemployed youth", "student"],
-  "pregnant woman / mother": ["pregnant woman / mother"],
+  "pregnant woman / mother": ["pregnant woman / mother", "homemaker"],
 };
+
+function scoreForCategoryPreference(scheme, categoryPreference) {
+  if (!categoryPreference || categoryPreference === "all") return 0;
+  if (scheme.category === categoryPreference) return 25;
+  if (scheme.tags?.includes(categoryPreference)) return 15;
+  return 0;
+}
 
 function scoreForOccupation(scheme, occupation) {
   if (!scheme.eligibilityRules?.requiredOccupation || !occupation) return 0;
@@ -26,6 +33,22 @@ function scoreForOccupation(scheme, occupation) {
   )
     ? 20
     : 0;
+}
+
+function scoreForQualification(scheme, qualification) {
+  if (!qualification) return 0;
+  const text = (scheme.name + " " + scheme.description + " " + (scheme.category || "")).toLowerCase();
+  
+  if (qualification === "graduate" && (text.includes("student") || text.includes("skill") || text.includes("scholarship"))) {
+    return 10;
+  }
+  if ((qualification === "diploma" || qualification === "higherSecondary") && text.includes("skill")) {
+    return 12;
+  }
+  if (qualification === "noFormal" && (text.includes("worker") || text.includes("labour") || text.includes("jan dhan"))) {
+    return 10;
+  }
+  return 5;
 }
 
 function scoreForAge(scheme, age) {
@@ -154,16 +177,21 @@ function buildReasons(scheme, profile) {
   if (scheme.targetUsers.includes(profile.occupation)) {
     reasons.push("Scheme matches your profile group");
   }
+  if (profile.categoryPreference && profile.categoryPreference !== "all" && scheme.category === profile.categoryPreference) {
+    reasons.push(`Direct match for ${profile.categoryPreference} preference`);
+  }
   return reasons;
 }
 
-export function matchSchemes(profile) {
+export function matchSchemes(profile = {}) {
   const matched = [];
   schemes.forEach((scheme) => {
     const reasons = buildReasons(scheme, profile);
     const missingDocuments = new Set();
     let score = 0;
+    score += scoreForCategoryPreference(scheme, profile.categoryPreference);
     score += scoreForOccupation(scheme, profile.occupation);
+    score += scoreForQualification(scheme, profile.qualification);
     score += scoreForAge(scheme, Number(profile.age));
     score += scoreForArea(scheme, profile.areaType);
     score += scoreForCoreRules(scheme, profile, reasons);

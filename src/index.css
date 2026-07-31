@@ -4,69 +4,105 @@
 
 :root {
   color-scheme: light;
-  --bg: #F6F8F7;
+  --bg: #F4F7F6;
   --surface: #FFFFFF;
-  --text-primary: #102A2D;
-  --text-secondary: #50656A;
-  --text-muted: #7B8F94;
-  --primary: #0F766E;
-  --primary-hover: #115E59;
-  --soft-accent: #E6F4F1;
-  --support: #2263f0;
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --primary: #059669;
+  --primary-hover: #047857;
+  --brand-light: #ECFDF5;
+  --accent: #2563EB;
   --warning: #D97706;
   --danger: #DC2626;
-  --border: #d4dad8;
-  --success-bg: #DCFCE7;
-  --warning-bg: #FEF3C7;
+  --border: #E2E8F0;
 }
 
 html {
   scroll-behavior: smooth;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
 body {
   margin: 0;
   min-height: 100vh;
-  background: var(--bg);
+  background: #F4F7F6;
   color: var(--text-primary);
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  -webkit-tap-highlight-color: transparent;
 }
 
-button,
-input,
-select,
-textarea {
-  font: inherit;
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
-* {
-  box-sizing: border-box;
+::-webkit-scrollbar-track {
+  background: #F1F5F9;
 }
 
-::selection {
-  background: rgba(9, 104, 96, 0.16);
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 9999px;
 }
 
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* UI Utilities */
 .shadow-soft {
-  box-shadow: 0 18px 40px rgba(15, 118, 110, 0.08);
+  box-shadow: 0 10px 30px -5px rgba(5, 150, 105, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.03);
 }
 
-.bg-soft {
-  background-color: var(--soft-accent);
+.shadow-card {
+  box-shadow: 0 12px 35px -8px rgba(15, 23, 42, 0.07);
 }
 
-.border-soft {
-  border-color: var(--border);
+.glass-card {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
 }
 
+/* Buttons */
 .btn-primary {
-  @apply inline-flex items-center justify-center rounded-full bg-primary px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-hover;
+  @apply inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-6 py-3.5 text-base font-semibold text-white shadow-md transition-all duration-200 hover:bg-emerald-700 active:scale-[0.98] disabled:opacity-50;
 }
 
 .btn-secondary {
-  @apply inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-primary hover:text-primary;
+  @apply inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-emerald-600 bg-emerald-50 px-6 py-3.5 text-base font-semibold text-emerald-800 transition-all duration-200 hover:bg-emerald-100 active:scale-[0.98];
 }
 
-.btn-muted {
-  @apply inline-flex items-center justify-center rounded-full bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-200;
+.btn-outline {
+  @apply inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition-all hover:bg-slate-50 hover:border-slate-400 active:scale-[0.98];
+}
+
+/* Mobile Friendly Form Inputs */
+.input-friendly {
+  @apply w-full rounded-2xl border-2 border-slate-200 bg-white px-4 py-3.5 text-base text-slate-900 outline-none transition-all focus:border-emerald-600 focus:ring-4 focus:ring-emerald-100 placeholder:text-slate-400;
+}
+
+.select-friendly {
+  @apply w-full rounded-2xl border-2 border-slate-200 bg-white px-4 py-3.5 text-base text-slate-900 outline-none transition-all focus:border-emerald-600 focus:ring-4 focus:ring-emerald-100 cursor-pointer;
+}
+
+/* Voice pulse animation */
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.5);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 14px rgba(5, 150, 105, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(5, 150, 105, 0);
+  }
+}
+
+.voice-pulse {
+  animation: pulse-ring 2s infinite;
 }

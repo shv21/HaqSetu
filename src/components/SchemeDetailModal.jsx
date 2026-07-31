@@ -4,7 +4,7 @@ import { getSchemeExplanation } from "../utils/aiExplain.js";
 
 export default function SchemeDetailModal({ scheme, lang, profile, onClose }) {
   const t = translations[lang] || translations.en;
-  const [explanation, setExplanation] = useState("Loading explanation...");
+  const [explanation, setExplanation] = useState("Analyzing eligibility details...");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -22,71 +22,103 @@ export default function SchemeDetailModal({ scheme, lang, profile, onClose }) {
   }, [scheme, lang, profile]);
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/40 px-4 py-10">
-      <div className="mx-auto max-w-3xl rounded-[2rem] bg-white p-6 shadow-soft">
-        <div className="flex items-start justify-between gap-4 border-b border-slate-200 pb-4">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm px-4 py-8 flex items-center justify-center animate-fadeIn">
+      <div className="relative w-full max-w-2xl rounded-3xl bg-white p-6 sm:p-8 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto">
+        
+        {/* Header */}
+        <div className="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
           <div>
-            <h2 className="text-2xl font-semibold text-slate-900">
+            <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-emerald-800">
+              {scheme.category}
+            </span>
+            <h2 className="mt-2 text-2xl font-black text-slate-900">
               {scheme.name}
             </h2>
-            <p className="mt-2 text-slate-600">{scheme.shortName}</p>
+            <p className="text-xs text-slate-500 font-medium">{scheme.shortName}</p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full bg-slate-100 px-4 py-2 text-slate-700 hover:bg-slate-200"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600 font-bold hover:bg-slate-200 transition"
           >
-            Close
+            ✕
           </button>
         </div>
+
+        {/* Modal Body */}
         <div className="mt-6 space-y-5">
-          <div className="space-y-3 rounded-3xl bg-slate-50 p-5">
-            <p className="text-sm uppercase tracking-[0.24em] text-slate-500">
-              {t.officialSource}
+          {/* Benefit Banner */}
+          <div className="rounded-2xl bg-emerald-50 p-4 border border-emerald-200">
+            <h3 className="text-xs font-bold uppercase text-emerald-800 tracking-wider">
+              🎁 Key Scheme Benefit
+            </h3>
+            <p className="mt-1 text-sm font-semibold text-emerald-950">
+              {scheme.benefit}
             </p>
+          </div>
+
+          {/* Scheme Description */}
+          <div className="rounded-2xl bg-slate-50 p-4 border border-slate-100">
+            <h3 className="text-xs font-bold uppercase text-slate-500 tracking-wider">
+              {t.schemeDetail}
+            </h3>
+            <p className="mt-2 text-sm text-slate-700 leading-relaxed">
+              {scheme.description}
+            </p>
+          </div>
+
+          {/* AI / Simple Breakdown */}
+          <div className="rounded-2xl bg-blue-50/60 p-4 border border-blue-100">
+            <h3 className="text-xs font-bold uppercase text-blue-800 tracking-wider flex items-center gap-1.5">
+              <span>💡</span> Simplified Eligibility Note
+            </h3>
+            <p className="mt-2 text-sm text-blue-950 leading-relaxed">
+              {loading ? "Preparing guidance..." : explanation}
+            </p>
+          </div>
+
+          {/* Required Documents & Application Steps Grid */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="rounded-2xl bg-slate-50 p-4 border border-slate-100">
+              <h3 className="text-xs font-bold uppercase text-slate-600 tracking-wider">
+                📄 {t.documentsHeadline}
+              </h3>
+              <ul className="mt-3 space-y-1.5 text-xs text-slate-700">
+                {scheme.requiredDocuments.map((doc) => (
+                  <li key={doc} className="flex items-center gap-1.5">
+                    <span className="text-emerald-600 font-bold">✓</span>
+                    <span>{doc}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="rounded-2xl bg-slate-50 p-4 border border-slate-100">
+              <h3 className="text-xs font-bold uppercase text-slate-600 tracking-wider">
+                🚀 {t.nextStepsTitle}
+              </h3>
+              <ol className="mt-3 space-y-1.5 text-xs text-slate-700 list-decimal pl-4">
+                {scheme.applySteps.map((step) => (
+                  <li key={step} className="leading-relaxed">{step}</li>
+                ))}
+              </ol>
+            </div>
+          </div>
+
+          {/* Official Source Link Banner */}
+          <div className="rounded-2xl bg-slate-900 text-white p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div>
+              <p className="text-xs text-slate-400">Official Portal Link</p>
+              <p className="text-sm font-bold text-white">{scheme.officialSourceName}</p>
+            </div>
             <a
               href={scheme.sourceUrl}
               target="_blank"
               rel="noreferrer"
-              className="text-brand font-semibold underline"
+              className="w-full sm:w-auto text-center rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white hover:bg-emerald-500 transition shadow-md"
             >
-              {scheme.officialSourceName}
+              Apply at Official Portal ↗
             </a>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="rounded-3xl bg-slate-50 p-5">
-              <h3 className="text-lg font-semibold text-slate-900">
-                {t.documentsHeadline}
-              </h3>
-              <ul className="mt-3 list-disc space-y-2 pl-5 text-slate-700">
-                {scheme.requiredDocuments.map((doc) => (
-                  <li key={doc}>{doc}</li>
-                ))}
-              </ul>
-            </div>
-            <div className="rounded-3xl bg-slate-50 p-5">
-              <h3 className="text-lg font-semibold text-slate-900">
-                {t.nextStepsTitle}
-              </h3>
-              <ul className="mt-3 list-decimal space-y-2 pl-5 text-slate-700">
-                {scheme.applySteps.map((step) => (
-                  <li key={step}>{step}</li>
-                ))}
-              </ul>
-            </div>
-          </div>
-          <div className="rounded-3xl bg-slate-50 p-5">
-            <h3 className="text-lg font-semibold text-slate-900">
-              {t.schemeDetail}
-            </h3>
-            <p className="mt-3 text-slate-700">{scheme.description}</p>
-            <p className="mt-2 text-slate-600">{scheme.benefit}</p>
-          </div>
-          <div className="rounded-3xl bg-slate-50 p-5">
-            <h3 className="text-lg font-semibold text-slate-900">AI Summary</h3>
-            <p className="mt-3 min-h-[80px] text-slate-700">
-              {loading ? "Loading explanation..." : explanation}
-            </p>
           </div>
         </div>
       </div>
