@@ -1,48 +1,51 @@
+import { Globe, Check } from "lucide-react";
 import translations from "../translations.js";
 
 const languageOptions = [
   { code: "en", label: "English" },
-  { code: "hi", label: "हिंदी" },
-  { code: "mr", label: "मराठी" },
+  { code: "hi", label: "हिंदी (Hindi)" },
+  { code: "mr", label: "मराठी (Marathi)" },
 ];
 
 export default function LanguageSelector({
   lang,
   setLang,
-  wrapperClassName = "mx-auto max-w-screen-xl px-4 py-8 sm:px-6 lg:px-8",
+  wrapperClassName = "mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8",
 }) {
   const t = translations[lang] || translations.en;
   return (
     <div className={wrapperClassName}>
-      <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">
-        <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+      <div className="rounded-xl border border-[#E2E8F0] bg-white p-4 sm:p-5 shadow-card flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#EAF2F8] text-[#123B63]">
+            <Globe className="h-4 w-4" />
+          </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">
-              {t.languageLabel}
-            </p>
-            <h2 className="mt-2 text-xl font-semibold text-slate-900">
-              {t.languageLabel}
-            </h2>
+            <span className="text-xs font-semibold text-[#1F2937] block">
+              {t.languageLabel || "Interface Language"}
+            </span>
+            <span className="text-[11px] text-[#64748B] block">
+              Choose your preferred language for descriptions and audio assistance
+            </span>
           </div>
-          <div className="flex flex-wrap gap-3">
-            {languageOptions.map((item) => (
-              <button
-                key={item.code}
-                type="button"
-                onClick={() => setLang(item.code)}
-                className={`rounded-full px-4 py-2 text-sm font-medium transition ${
-                  item.code === lang
-                    ? "bg-primary text-white shadow-sm"
-                    : "border border-slate-200 bg-slate-50 text-slate-700 hover:border-primary hover:text-primary"
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
-          <p className="text-sm text-slate-500 sm:text-right">
-            {t.statusReady}
-          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          {languageOptions.map((item) => (
+            <button
+              key={item.code}
+              type="button"
+              onClick={() => setLang(item.code)}
+              className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                item.code === lang
+                  ? "bg-[#123B63] text-white font-semibold shadow-xs"
+                  : "border border-[#E2E8F0] bg-[#F8FAFC] text-[#1F2937] hover:bg-slate-100"
+              }`}
+            >
+              <span>{item.label}</span>
+              {item.code === lang && <Check className="h-3.5 w-3.5 text-white" />}
+            </button>
+          ))}
         </div>
       </div>
     </div>

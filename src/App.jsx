@@ -9,7 +9,6 @@ import ChecklistPage from "./pages/Checklist.jsx";
 import Safety from "./pages/Safety.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import About from "./pages/About.jsx";
-import LanguageSelector from "./components/LanguageSelector.jsx";
 import { loadProfile } from "./utils/storage.js";
 
 const DEFAULT_LANG = "en";
@@ -21,70 +20,44 @@ export default function App() {
   const memoLang = useMemo(() => lang, [lang]);
 
   return (
-    <div className="min-h-screen bg-[#F6F8F7] text-slate-900">
-      <Navbar lang={memoLang} />
-      <Routes>
-        <Route path="/" element={<Home lang={memoLang} setLang={setLang} />} />
-        <Route
-          path="/check"
-          element={
-            <>
-              <LanguageSelector lang={memoLang} setLang={setLang} />
-              <Check lang={memoLang} setProfile={setProfile} />
-            </>
-          }
-        />
-        <Route
-          path="/results"
-          element={
-            <>
-              <LanguageSelector lang={memoLang} setLang={setLang} />
+    <div className="min-h-screen bg-[#F8FAFC] text-[#1F2937] flex flex-col font-sans">
+      <Navbar lang={memoLang} setLang={setLang} />
+      <div className="flex-1">
+        <Routes>
+          <Route path="/" element={<Home lang={memoLang} setLang={setLang} />} />
+          <Route
+            path="/check"
+            element={<Check lang={memoLang} setProfile={setProfile} />}
+          />
+          <Route
+            path="/results"
+            element={
               <Results
                 lang={memoLang}
                 profile={profile}
                 onUpdateMatched={setMatchedSchemes}
               />
-            </>
-          }
-        />
-        <Route
-          path="/checklist"
-          element={
-            <>
-              <LanguageSelector lang={memoLang} setLang={setLang} />
-              <ChecklistPage lang={memoLang} matchedSchemes={matchedSchemes} />
-            </>
-          }
-        />
-        <Route
-          path="/safety"
-          element={
-            <>
-              <LanguageSelector lang={memoLang} setLang={setLang} />
-              <Safety lang={memoLang} />
-            </>
-          }
-        />
-        <Route
-          path="/dashboard"
-          element={
-            <>
-              <LanguageSelector lang={memoLang} setLang={setLang} />
-              <Dashboard lang={memoLang} />
-            </>
-          }
-        />
-        <Route
-          path="/about"
-          element={
-            <>
-              <LanguageSelector lang={memoLang} setLang={setLang} />
-              <About lang={memoLang} />
-            </>
-          }
-        />
-      </Routes>
-      <Footer lang={memoLang} />
+            }
+          />
+          <Route
+            path="/checklist"
+            element={<ChecklistPage lang={memoLang} matchedSchemes={matchedSchemes} />}
+          />
+          <Route
+            path="/safety"
+            element={<Safety lang={memoLang} />}
+          />
+          <Route
+            path="/dashboard"
+            element={<Dashboard lang={memoLang} />}
+          />
+          <Route
+            path="/about"
+            element={<About lang={memoLang} />}
+          />
+        </Routes>
+      </div>
+      <Footer lang={memoLang} setLang={setLang} />
     </div>
   );
 }

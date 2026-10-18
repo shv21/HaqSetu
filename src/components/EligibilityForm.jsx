@@ -1,5 +1,20 @@
 import { useState } from "react";
+import { 
+  User, 
+  GraduationCap, 
+  FileCheck2, 
+  ArrowRight, 
+  ArrowLeft, 
+  AlertCircle, 
+  Check, 
+  Sparkles, 
+  HelpCircle,
+  MapPin,
+  Building2,
+  Briefcase
+} from "lucide-react";
 import translations from "../translations.js";
+import { loadProfile } from "../utils/storage.js";
 
 const STATES = [
   "Andhra Pradesh",
@@ -26,15 +41,15 @@ const STATES = [
 ];
 
 const OCCUPATIONS = [
-  "student",
-  "informal worker",
-  "daily wage worker",
-  "farmer",
-  "self-employed",
-  "street vendor",
-  "homemaker",
-  "unemployed youth",
-  "pregnant woman / mother",
+  { value: "informal worker", label: "Informal Worker / Labourer" },
+  { value: "daily wage worker", label: "Daily Wage Worker / Mazdoor" },
+  { value: "farmer", label: "Farmer / Agricultural Worker" },
+  { value: "student", label: "Student / Pursuing Education" },
+  { value: "street vendor", label: "Street Vendor / Hawker" },
+  { value: "self-employed", label: "Self-Employed / Traditional Artisan" },
+  { value: "homemaker", label: "Homemaker / Family Caregiver" },
+  { value: "pregnant woman / mother", label: "Pregnant Woman / New Mother" },
+  { value: "unemployed youth", label: "Unemployed Youth" },
 ];
 
 const INCOME_RANGES = [
@@ -44,66 +59,72 @@ const INCOME_RANGES = [
   "> ₹30,000",
 ];
 
-export default function EligibilityForm({ lang, onSubmit, initialValues = {} }) {
+export default function EligibilityForm({ lang, onSubmit, initialValues }) {
   const t = translations[lang] || translations.en;
+  const storedProfile = loadProfile() || {};
+  const defaults = { ...storedProfile, ...initialValues };
+
   const [step, setStep] = useState(1);
 
   const [form, setForm] = useState({
-    fullName: initialValues.fullName || "",
-    age: initialValues.age || "",
-    gender: initialValues.gender || "",
-    address: initialValues.address || "",
-    district: initialValues.district || "",
-    state: initialValues.state || "",
-    areaType: initialValues.areaType || "",
-    qualification: initialValues.qualification || "",
-    occupation: initialValues.occupation || "",
-    categoryPreference: initialValues.categoryPreference || "all",
-    incomeRange: initialValues.incomeRange || "",
-    hasAadhaar: initialValues.hasAadhaar ?? "",
-    hasMobileLinked: initialValues.hasMobileLinked ?? "",
-    hasBankAccount: initialValues.hasBankAccount ?? "",
-    hasRationCard: initialValues.hasRationCard ?? "",
-    hasIncomeCert: initialValues.hasIncomeCert ?? "",
-    hasCasteCert: initialValues.hasCasteCert ?? "",
-    hasDisabilityCert: initialValues.hasDisabilityCert ?? "",
+    fullName: defaults.fullName || "",
+    age: defaults.age ? String(defaults.age) : "",
+    gender: defaults.gender || "male",
+    address: defaults.address || "",
+    district: defaults.district || "",
+    state: defaults.state || "Uttar Pradesh",
+    areaType: defaults.areaType || "rural",
+    qualification: defaults.qualification || "secondary",
+    occupation: defaults.occupation || "informal worker",
+    categoryPreference: defaults.categoryPreference || "all",
+    incomeRange: defaults.incomeRange || "< ₹10,000",
+    hasAadhaar: defaults.hasAadhaar ?? true,
+    hasMobileLinked: defaults.hasMobileLinked ?? true,
+    hasBankAccount: defaults.hasBankAccount ?? true,
+    hasRationCard: defaults.hasRationCard ?? true,
+    hasIncomeCert: defaults.hasIncomeCert ?? true,
+    hasCasteCert: defaults.hasCasteCert ?? false,
+    hasDisabilityCert: defaults.hasDisabilityCert ?? false,
   });
 
   const [errors, setErrors] = useState({});
 
   const handleChange = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
-    setErrors((prev) => ({ ...prev, [field]: undefined }));
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
   };
 
   const validateStep1 = () => {
-    const newErrors = {};
+    const errs = {};
     if (!form.fullName.trim()) {
-      newErrors.fullName = t.fullName + " is required.";
+      errs.fullName = "Please enter your full name.";
     }
-    if (!form.age || Number(form.age) < 10 || Number(form.age) > 100) {
-      newErrors.age = "Please enter age between 10 and 100.";
+    const ageNum = Number(form.age);
+    if (!form.age || isNaN(ageNum) || ageNum < 10 || ageNum > 100) {
+      errs.age = "Please enter a valid age between 10 and 100.";
     }
     if (!form.state) {
-      newErrors.state = "Please select your state.";
+      errs.state = "Please select your state.";
     }
     if (!form.areaType) {
-      newErrors.areaType = "Please select rural or urban.";
+      errs.areaType = "Please select rural or urban.";
     }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
   };
 
   const validateStep2 = () => {
-    const newErrors = {};
+    const errs = {};
     if (!form.qualification) {
-      newErrors.qualification = "Please select qualification.";
+      errs.qualification = "Please select your educational qualification.";
     }
     if (!form.occupation) {
-      newErrors.occupation = "Please select occupation.";
+      errs.occupation = "Please select your occupation.";
     }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
   };
 
   const handleNext = () => {
@@ -113,415 +134,584 @@ export default function EligibilityForm({ lang, onSubmit, initialValues = {} }) 
     } else if (step === 2 && validateStep2()) {
       setStep(3);
       window.scrollTo({ top: 0, behavior: "smooth" });
+    } else if (step === 3) {
+      setStep(4); // Review step
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  const handleBack = () => {
+    if (step > 1) {
+      setStep(step - 1);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
   const parseBooleanField = (value) => {
     if (value === "true" || value === true) return true;
     if (value === "false" || value === false) return false;
-    return "";
+    return false;
   };
 
-  const handleSubmit = () => {
+  const handleFinalSubmit = () => {
     const normalizedProfile = {
       ...form,
+      fullName: form.fullName.trim() || "Citizen",
       age: Number(form.age) || 25,
-      hasAadhaar: parseBooleanField(form.hasAadhaar) !== false,
-      hasMobileLinked: parseBooleanField(form.hasMobileLinked) !== false,
-      hasBankAccount: parseBooleanField(form.hasBankAccount) !== false,
-      hasRationCard: parseBooleanField(form.hasRationCard) === true,
-      hasIncomeCert: parseBooleanField(form.hasIncomeCert) === true,
-      hasCasteCert: parseBooleanField(form.hasCasteCert) === true,
-      hasDisabilityCert: parseBooleanField(form.hasDisabilityCert) === true,
+      hasAadhaar: parseBooleanField(form.hasAadhaar),
+      hasMobileLinked: parseBooleanField(form.hasMobileLinked),
+      hasBankAccount: parseBooleanField(form.hasBankAccount),
+      hasRationCard: parseBooleanField(form.hasRationCard),
+      hasIncomeCert: parseBooleanField(form.hasIncomeCert),
+      hasCasteCert: parseBooleanField(form.hasCasteCert),
+      hasDisabilityCert: parseBooleanField(form.hasDisabilityCert),
     };
     onSubmit(normalizedProfile);
   };
 
+  const stepsList = [
+    { num: 1, label: "Personal", icon: User },
+    { num: 2, label: "Work & Education", icon: GraduationCap },
+    { num: 3, label: "Documents", icon: FileCheck2 },
+    { num: 4, label: "Review", icon: Sparkles },
+  ];
+
+  const progressPercentage = Math.round(((step - 1) / (stepsList.length - 1)) * 100);
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-      {/* Wizard Progress Bar */}
-      <div className="mb-8 rounded-3xl bg-white p-6 shadow-soft border border-slate-200/80">
-        <div className="flex items-center justify-between gap-2">
-          {[
-            { num: 1, title: t.step1Title, icon: "👤" },
-            { num: 2, title: t.step2Title, icon: "🎓" },
-            { num: 3, title: t.step3Title, icon: "📄" },
-          ].map((s) => (
-            <button
-              key={s.num}
-              type="button"
-              onClick={() => {
-                if (s.num < step) setStep(s.num);
-              }}
-              className={`flex-1 flex items-center justify-center gap-2 rounded-2xl py-3 px-3 transition-all ${
-                step === s.num
-                  ? "bg-emerald-600 text-white font-bold shadow-md"
-                  : step > s.num
-                  ? "bg-emerald-50 text-emerald-800 font-semibold cursor-pointer"
-                  : "bg-slate-100 text-slate-400 font-medium"
-              }`}
-            >
-              <span className="text-lg">{s.icon}</span>
-              <span className="hidden sm:inline text-sm">{s.title}</span>
-              <span className="sm:hidden text-xs">Step {s.num}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Main Form Container */}
-      <div className="rounded-3xl bg-white p-6 sm:p-10 shadow-card border border-slate-200/80">
-        {/* STEP 1: Personal Details (Name, Age, Location) */}
-        {step === 1 && (
-          <div className="space-y-6 animate-fadeIn">
-            <div className="border-b border-slate-100 pb-4">
-              <span className="text-xs font-bold uppercase tracking-wider text-emerald-600">
-                Step 1 of 3
+      
+      {/* Questionnaire Card */}
+      <div className="rounded-xl border border-[#E2E8F0] bg-white shadow-card overflow-hidden">
+        
+        {/* Progress Bar & Header */}
+        <div className="border-b border-[#E2E8F0] bg-[#F8FAFC] p-6 sm:px-8">
+          
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+            <div>
+              <span className="text-xs font-semibold uppercase tracking-wider text-[#123B63]">
+                Eligibility Questionnaire
               </span>
-              <h2 className="mt-1 text-2xl font-bold text-slate-900">
-                {t.step1Title}
+              <h2 className="text-xl font-bold text-[#1F2937] mt-0.5">
+                {step === 1 && "Step 1: Personal Details"}
+                {step === 2 && "Step 2: Education & Work Profile"}
+                {step === 3 && "Step 3: Document Readiness"}
+                {step === 4 && "Step 4: Review Your Details"}
               </h2>
-              <p className="text-sm text-slate-500">{t.formIntro}</p>
             </div>
+            
+            <div className="flex items-center gap-2 text-xs font-medium text-[#64748B]">
+              <span>Step {step} of 4</span>
+              <span className="font-semibold text-[#123B63]">({progressPercentage}% completed)</span>
+            </div>
+          </div>
 
-            <div className="grid gap-5 sm:grid-cols-2">
+          {/* Linear Progress Indicator */}
+          <div className="w-full bg-[#E2E8F0] h-2 rounded-full overflow-hidden">
+            <div 
+              className="bg-[#123B63] h-full transition-all duration-300 ease-out rounded-full"
+              style={{ width: `${Math.max(10, progressPercentage)}%` }}
+            />
+          </div>
+
+          {/* Stepper Tabs */}
+          <div className="grid grid-cols-4 gap-2 mt-4">
+            {stepsList.map((s) => {
+              const Icon = s.icon;
+              const isPassed = step > s.num;
+              const isCurrent = step === s.num;
+              return (
+                <button
+                  key={s.num}
+                  type="button"
+                  disabled={!isPassed && !isCurrent}
+                  onClick={() => {
+                    if (isPassed) setStep(s.num);
+                  }}
+                  className={`flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium rounded transition-colors ${
+                    isCurrent 
+                      ? "text-[#123B63] font-semibold"
+                      : isPassed
+                      ? "text-[#13805B] cursor-pointer hover:underline"
+                      : "text-slate-400 cursor-not-allowed"
+                  }`}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">{s.label}</span>
+                  {isPassed && <Check className="h-3 w-3 text-[#13805B]" />}
+                </button>
+              );
+            })}
+          </div>
+
+        </div>
+
+        {/* Form Body */}
+        <div className="p-6 sm:p-8">
+
+          {/* ================= STEP 1: PERSONAL DETAILS ================= */}
+          {step === 1 && (
+            <div className="space-y-5 animate-fadeIn">
+              
+              <div className="bg-[#EAF2F8] border border-[#D1E3F1] rounded-lg p-3 text-xs text-[#123B63] flex items-start gap-2">
+                <HelpCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                <span>We only use these details locally to determine scheme eligibility rules. No personal data is stored without permission.</span>
+              </div>
+
               {/* Full Name */}
-              <div className="sm:col-span-2">
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                  {t.fullName} <span className="text-red-500">*</span>
+              <div>
+                <label htmlFor="form-fullName" className="block text-xs font-semibold text-[#1F2937] mb-1">
+                  Full Name <span className="text-red-500">*</span>
                 </label>
                 <input
+                  id="form-fullName"
                   type="text"
                   value={form.fullName}
                   onChange={(e) => handleChange("fullName", e.target.value)}
-                  placeholder={t.fullNamePlaceholder}
-                  className="input-friendly"
+                  placeholder="e.g. Ramesh Kumar"
+                  className={`input-clean ${errors.fullName ? "border-red-500 focus:border-red-500 focus:ring-red-100" : ""}`}
                 />
                 {errors.fullName && (
-                  <p className="mt-1 text-xs text-red-500 font-medium">{errors.fullName}</p>
+                  <p className="mt-1 text-xs text-red-600 flex items-center gap-1 font-medium">
+                    <AlertCircle className="h-3.5 w-3.5" /> {errors.fullName}
+                  </p>
                 )}
               </div>
 
-              {/* Age */}
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                  {t.age} <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="number"
-                  min="10"
-                  max="100"
-                  value={form.age}
-                  onChange={(e) => handleChange("age", e.target.value)}
-                  placeholder={t.agePlaceholder}
-                  className="input-friendly"
-                />
-                {errors.age && (
-                  <p className="mt-1 text-xs text-red-500 font-medium">{errors.age}</p>
-                )}
+              {/* Age & Gender Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="form-age" className="block text-xs font-semibold text-[#1F2937] mb-1">
+                    Age (in years) <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    id="form-age"
+                    type="number"
+                    min="10"
+                    max="100"
+                    value={form.age}
+                    onChange={(e) => handleChange("age", e.target.value)}
+                    placeholder="e.g. 28"
+                    className={`input-clean ${errors.age ? "border-red-500" : ""}`}
+                  />
+                  {errors.age && (
+                    <p className="mt-1 text-xs text-red-600 flex items-center gap-1 font-medium">
+                      <AlertCircle className="h-3.5 w-3.5" /> {errors.age}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#1F2937] mb-1">
+                    Gender
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { value: "male", label: "Male" },
+                      { value: "female", label: "Female" },
+                      { value: "other", label: "Other" },
+                    ].map((g) => (
+                      <button
+                        key={g.value}
+                        type="button"
+                        onClick={() => handleChange("gender", g.value)}
+                        className={`rounded-lg border py-2 text-xs font-medium transition-colors ${
+                          form.gender === g.value
+                            ? "border-[#123B63] bg-[#EAF2F8] text-[#123B63] font-semibold"
+                            : "border-[#E2E8F0] bg-white text-[#1F2937] hover:bg-slate-50"
+                        }`}
+                      >
+                        {g.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
 
-              {/* Gender */}
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                  {t.gender}
-                </label>
-                <select
-                  value={form.gender}
-                  onChange={(e) => handleChange("gender", e.target.value)}
-                  className="select-friendly"
+              {/* State & Area Type */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="form-state" className="block text-xs font-semibold text-[#1F2937] mb-1">
+                    State / Union Territory <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    id="form-state"
+                    value={form.state}
+                    onChange={(e) => handleChange("state", e.target.value)}
+                    className="select-clean"
+                  >
+                    {STATES.map((st) => (
+                      <option key={st} value={st}>{st}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#1F2937] mb-1">
+                    Area Type <span className="text-red-500">*</span>
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { value: "rural", label: "Rural (गाँव)" },
+                      { value: "urban", label: "Urban (शहर)" },
+                    ].map((area) => (
+                      <button
+                        key={area.value}
+                        type="button"
+                        onClick={() => handleChange("areaType", area.value)}
+                        className={`rounded-lg border py-2 text-xs font-medium transition-colors ${
+                          form.areaType === area.value
+                            ? "border-[#123B63] bg-[#EAF2F8] text-[#123B63] font-semibold"
+                            : "border-[#E2E8F0] bg-white text-[#1F2937] hover:bg-slate-50"
+                        }`}
+                      >
+                        {area.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Optional District & Town */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="form-district" className="block text-xs font-semibold text-[#1F2937] mb-1">
+                    District (Optional)
+                  </label>
+                  <input
+                    id="form-district"
+                    type="text"
+                    value={form.district}
+                    onChange={(e) => handleChange("district", e.target.value)}
+                    placeholder="e.g. Varanasi"
+                    className="input-clean"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="form-address" className="block text-xs font-semibold text-[#1F2937] mb-1">
+                    Village / Town / Ward (Optional)
+                  </label>
+                  <input
+                    id="form-address"
+                    type="text"
+                    value={form.address}
+                    onChange={(e) => handleChange("address", e.target.value)}
+                    placeholder="e.g. Rampur"
+                    className="input-clean"
+                  />
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-6 border-t border-[#E2E8F0] flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  className="btn-primary"
                 >
-                  <option value="">Select Gender</option>
-                  <option value="female">Female (महिला)</option>
-                  <option value="male">Male (पुरुष)</option>
-                  <option value="other">Other (अन्य)</option>
-                </select>
+                  <span>Continue to Work & Education</span>
+                  <ArrowRight className="h-4 w-4" />
+                </button>
               </div>
 
-              {/* State */}
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                  {t.state} <span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={form.state}
-                  onChange={(e) => handleChange("state", e.target.value)}
-                  className="select-friendly"
-                >
-                  <option value="">{t.statePlaceholder}</option>
-                  {STATES.map((st) => (
-                    <option key={st} value={st}>
-                      {st}
-                    </option>
-                  ))}
-                </select>
-                {errors.state && (
-                  <p className="mt-1 text-xs text-red-500 font-medium">{errors.state}</p>
-                )}
-              </div>
-
-              {/* Area Type */}
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                  {t.areaType} <span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={form.areaType}
-                  onChange={(e) => handleChange("areaType", e.target.value)}
-                  className="select-friendly"
-                >
-                  <option value="">Select Area Type</option>
-                  <option value="rural">🏡 {t.rural}</option>
-                  <option value="urban">🏙️ {t.urban}</option>
-                </select>
-                {errors.areaType && (
-                  <p className="mt-1 text-xs text-red-500 font-medium">{errors.areaType}</p>
-                )}
-              </div>
-
-              {/* Village/City Address */}
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                  {t.address}
-                </label>
-                <input
-                  type="text"
-                  value={form.address}
-                  onChange={(e) => handleChange("address", e.target.value)}
-                  placeholder={t.addressPlaceholder}
-                  className="input-friendly"
-                />
-              </div>
-
-              {/* District */}
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                  {t.district}
-                </label>
-                <input
-                  type="text"
-                  value={form.district}
-                  onChange={(e) => handleChange("district", e.target.value)}
-                  placeholder={t.districtPlaceholder}
-                  className="input-friendly"
-                />
-              </div>
             </div>
+          )}
 
-            <div className="mt-8 flex justify-end">
-              <button
-                type="button"
-                onClick={handleNext}
-                className="btn-primary w-full sm:w-auto"
-              >
-                <span>{t.next}</span>
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 2: Qualification, Occupation & Scheme Category Preference */}
-        {step === 2 && (
-          <div className="space-y-6 animate-fadeIn">
-            <div className="border-b border-slate-100 pb-4">
-              <span className="text-xs font-bold uppercase tracking-wider text-emerald-600">
-                Step 2 of 3
-              </span>
-              <h2 className="mt-1 text-2xl font-bold text-slate-900">
-                {t.step2Title}
-              </h2>
-              <p className="text-sm text-slate-500">
-                Tell us your education, work status, and what kind of schemes you prefer.
+          {/* ================= STEP 2: QUALIFICATION & WORK ================= */}
+          {step === 2 && (
+            <div className="space-y-5 animate-fadeIn">
+              
+              <p className="text-xs text-[#64748B]">
+                Specify your education level and work sector so the engine can check targeted schemes.
               </p>
-            </div>
 
-            <div className="space-y-5">
-              {/* Category Preference */}
+              {/* Scheme Category Interest */}
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                  🎯 {t.preferredCategory}
+                <label htmlFor="form-catPref" className="block text-xs font-semibold text-[#1F2937] mb-1">
+                  Primary Scheme Category of Interest
                 </label>
                 <select
+                  id="form-catPref"
                   value={form.categoryPreference}
                   onChange={(e) => handleChange("categoryPreference", e.target.value)}
-                  className="select-friendly border-2 border-emerald-600/40 bg-emerald-50/30 font-semibold"
+                  className="select-clean"
                 >
-                  {Object.entries(t.categories || {}).map(([catKey, catLabel]) => (
-                    <option key={catKey} value={catKey}>
-                      {catLabel}
-                    </option>
-                  ))}
+                  <option value="all">All Categories (Comprehensive Search)</option>
+                  <option value="health">Healthcare & Hospital Cashless Coverage</option>
+                  <option value="education">Scholarships, Student Aid & Education</option>
+                  <option value="money">Financial Assistance & Cash Benefits</option>
+                  <option value="farmer">Agriculture, Farming & Livestock</option>
+                  <option value="skill">Skill Training, Artisans & Self-Employment</option>
+                  <option value="housing">Housing & Permanent Pucca House</option>
                 </select>
               </div>
 
-              {/* Educational Qualification */}
+              {/* Education Level */}
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                  {t.qualification} <span className="text-red-500">*</span>
+                <label htmlFor="form-qual" className="block text-xs font-semibold text-[#1F2937] mb-1">
+                  Educational Qualification <span className="text-red-500">*</span>
                 </label>
                 <select
+                  id="form-qual"
                   value={form.qualification}
                   onChange={(e) => handleChange("qualification", e.target.value)}
-                  className="select-friendly"
+                  className="select-clean"
                 >
-                  <option value="">{t.qualificationPlaceholder}</option>
-                  {Object.entries(t.eduLevels || {}).map(([key, label]) => (
-                    <option key={key} value={key}>
-                      {label}
-                    </option>
-                  ))}
+                  <option value="noFormal">No Formal Schooling / Literate</option>
+                  <option value="primary">Primary School (Up to 5th)</option>
+                  <option value="middle">Middle School (Up to 8th)</option>
+                  <option value="secondary">Secondary (10th Pass)</option>
+                  <option value="higherSecondary">Higher Secondary (12th Pass)</option>
+                  <option value="diploma">ITI / Vocational Diploma</option>
+                  <option value="graduate">Graduate (BA, BSc, BCom, BTech, etc.)</option>
+                  <option value="postGraduate">Post Graduate / Higher</option>
                 </select>
-                {errors.qualification && (
-                  <p className="mt-1 text-xs text-red-500 font-medium">{errors.qualification}</p>
-                )}
               </div>
 
               {/* Occupation */}
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                  {t.occupation} <span className="text-red-500">*</span>
+                <label htmlFor="form-occ" className="block text-xs font-semibold text-[#1F2937] mb-1">
+                  Occupation / Beneficiary Status <span className="text-red-500">*</span>
                 </label>
                 <select
+                  id="form-occ"
                   value={form.occupation}
                   onChange={(e) => handleChange("occupation", e.target.value)}
-                  className="select-friendly"
+                  className="select-clean"
                 >
-                  <option value="">Select your work status</option>
                   {OCCUPATIONS.map((occ) => (
-                    <option key={occ} value={occ}>
-                      {occ.charAt(0).toUpperCase() + occ.slice(1)}
-                    </option>
+                    <option key={occ.value} value={occ.value}>{occ.label}</option>
                   ))}
                 </select>
-                {errors.occupation && (
-                  <p className="mt-1 text-xs text-red-500 font-medium">{errors.occupation}</p>
-                )}
               </div>
 
-              {/* Income Range */}
+              {/* Monthly Family Income */}
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                  {t.incomeRange}
+                <label htmlFor="form-income" className="block text-xs font-semibold text-[#1F2937] mb-1">
+                  Estimated Monthly Household Income
                 </label>
                 <select
+                  id="form-income"
                   value={form.incomeRange}
                   onChange={(e) => handleChange("incomeRange", e.target.value)}
-                  className="select-friendly"
+                  className="select-clean"
                 >
-                  <option value="">Select Monthly Family Income</option>
                   {INCOME_RANGES.map((rng) => (
-                    <option key={rng} value={rng}>
-                      {rng}
-                    </option>
+                    <option key={rng} value={rng}>{rng}</option>
                   ))}
                 </select>
               </div>
-            </div>
 
-            <div className="mt-8 flex flex-col-reverse sm:flex-row gap-3 justify-between">
-              <button
-                type="button"
-                onClick={() => setStep(1)}
-                className="btn-outline"
-              >
-                ← {t.back}
-              </button>
-              <button
-                type="button"
-                onClick={handleNext}
-                className="btn-primary"
-              >
-                <span>{t.next}</span>
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 3: Documents Check (Simple Yes/No Cards) */}
-        {step === 3 && (
-          <div className="space-y-6 animate-fadeIn">
-            <div className="border-b border-slate-100 pb-4">
-              <span className="text-xs font-bold uppercase tracking-wider text-emerald-600">
-                Step 3 of 3
-              </span>
-              <h2 className="mt-1 text-2xl font-bold text-slate-900">
-                {t.step3Title}
-              </h2>
-              <p className="text-sm text-slate-500">
-                Select documents you currently possess. Don't worry if you miss any!
-              </p>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              {[
-                { field: "hasAadhaar", label: t.hasAadhaar, icon: "🪪" },
-                { field: "hasMobileLinked", label: t.hasMobileLinked, icon: "📱" },
-                { field: "hasBankAccount", label: t.hasBankAccount, icon: "🏦" },
-                { field: "hasRationCard", label: t.hasRationCard, icon: "🌾" },
-                { field: "hasIncomeCert", label: t.hasIncomeCert, icon: "📜" },
-                { field: "hasCasteCert", label: t.hasCasteCert, icon: "📋" },
-              ].map(({ field, label, icon }) => (
-                <div
-                  key={field}
-                  className="rounded-2xl border-2 border-slate-100 bg-slate-50 p-4 transition hover:border-emerald-200"
+              {/* Action Buttons */}
+              <div className="pt-6 border-t border-[#E2E8F0] flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={handleBack}
+                  className="btn-outline"
                 >
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="text-xl">{icon}</span>
-                    <span className="text-sm font-semibold text-slate-800">{label}</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleChange(field, "true")}
-                      className={`py-2 rounded-xl text-sm font-bold transition ${
-                        form[field] === "true" || form[field] === true
-                          ? "bg-emerald-600 text-white shadow-sm"
-                          : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-100"
-                      }`}
-                    >
-                      ✓ {t.yes}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleChange(field, "false")}
-                      className={`py-2 rounded-xl text-sm font-bold transition ${
-                        form[field] === "false" || form[field] === false
-                          ? "bg-slate-700 text-white shadow-sm"
-                          : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-100"
-                      }`}
-                    >
-                      ✕ {t.no}
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                  <ArrowLeft className="h-4 w-4" />
+                  <span>Back</span>
+                </button>
 
-            <div className="mt-8 flex flex-col-reverse sm:flex-row gap-3 justify-between">
-              <button
-                type="button"
-                onClick={() => setStep(2)}
-                className="btn-outline"
-              >
-                ← {t.back}
-              </button>
-              <button
-                type="button"
-                onClick={handleSubmit}
-                className="btn-primary bg-emerald-600 hover:bg-emerald-700 text-lg shadow-lg py-4 px-8"
-              >
-                🔍 {t.submit}
-              </button>
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  className="btn-primary"
+                >
+                  <span>Continue to Documents</span>
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              </div>
+
             </div>
-          </div>
-        )}
+          )}
+
+          {/* ================= STEP 3: DOCUMENT READINESS ================= */}
+          {step === 3 && (
+            <div className="space-y-5 animate-fadeIn">
+              
+              <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg p-3 text-xs text-[#64748B]">
+                Indicate which documents you currently hold. If you don't have some documents yet, the system will highlight the exact steps to acquire them.
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                {[
+                  { field: "hasAadhaar", title: "Aadhaar Card", desc: "Required for identity authentication" },
+                  { field: "hasMobileLinked", title: "Aadhaar-Linked Mobile", desc: "Needed for OTP-based e-KYC verification" },
+                  { field: "hasBankAccount", title: "Active Bank Account", desc: "For direct DBT subsidy transfers" },
+                  { field: "hasRationCard", title: "Ration Card (BPL/APL/AAY)", desc: "Proof of household food & welfare status" },
+                  { field: "hasIncomeCert", title: "Income Certificate", desc: "Certifies family income eligibility" },
+                  { field: "hasCasteCert", title: "Caste Certificate", desc: "For SC/ST/OBC category reservations" },
+                  { field: "hasDisabilityCert", title: "Disability Certificate", desc: "For Divyangjan assistance programs" },
+                ].map(({ field, title, desc }) => {
+                  const isYes = form[field] === true || form[field] === "true";
+                  return (
+                    <div
+                      key={field}
+                      className="rounded-lg border border-[#E2E8F0] bg-white p-3.5 flex flex-col justify-between"
+                    >
+                      <div>
+                        <span className="text-xs font-semibold text-[#1F2937] block">
+                          {title}
+                        </span>
+                        <span className="text-[11px] text-[#64748B] block mt-0.5">
+                          {desc}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 mt-3 pt-2 border-t border-slate-100">
+                        <button
+                          type="button"
+                          onClick={() => handleChange(field, true)}
+                          className={`rounded py-1.5 text-xs font-medium transition-colors ${
+                            isYes
+                              ? "bg-[#13805B] text-white font-semibold"
+                              : "border border-[#E2E8F0] bg-white text-[#64748B] hover:bg-slate-50"
+                          }`}
+                        >
+                          ✓ Yes, I have it
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleChange(field, false)}
+                          className={`rounded py-1.5 text-xs font-medium transition-colors ${
+                            !isYes
+                              ? "bg-slate-700 text-white font-semibold"
+                              : "border border-[#E2E8F0] bg-white text-[#64748B] hover:bg-slate-50"
+                          }`}
+                        >
+                          ✕ Not yet
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-6 border-t border-[#E2E8F0] flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={handleBack}
+                  className="btn-outline"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  <span>Back</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  className="btn-primary"
+                >
+                  <span>Review Answers</span>
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              </div>
+
+            </div>
+          )}
+
+          {/* ================= STEP 4: REVIEW & SUBMIT ================= */}
+          {step === 4 && (
+            <div className="space-y-6 animate-fadeIn">
+              
+              <div className="border border-[#D1E3F1] bg-[#EAF2F8] rounded-lg p-4 text-xs text-[#123B63]">
+                <p className="font-semibold text-sm mb-1">Ready to discover your schemes!</p>
+                <p>Please review your details below before generating your matched schemes list.</p>
+              </div>
+
+              <div className="rounded-lg border border-[#E2E8F0] bg-white divide-y divide-[#E2E8F0] text-xs">
+                
+                {/* Personal Section Review */}
+                <div className="p-4 flex items-start justify-between">
+                  <div className="space-y-1">
+                    <p className="font-semibold text-[#1F2937] text-sm">Personal Profile</p>
+                    <p className="text-[#64748B]">Name: <span className="font-medium text-[#1F2937]">{form.fullName || "Citizen"}</span></p>
+                    <p className="text-[#64748B]">Age: <span className="font-medium text-[#1F2937]">{form.age} yrs</span> • Gender: <span className="font-medium text-[#1F2937] capitalize">{form.gender}</span></p>
+                    <p className="text-[#64748B]">Location: <span className="font-medium text-[#1F2937]">{form.state} ({form.areaType})</span></p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setStep(1)}
+                    className="text-xs text-[#123B63] font-medium hover:underline"
+                  >
+                    Edit
+                  </button>
+                </div>
+
+                {/* Work & Category Section Review */}
+                <div className="p-4 flex items-start justify-between">
+                  <div className="space-y-1">
+                    <p className="font-semibold text-[#1F2937] text-sm">Work & Education</p>
+                    <p className="text-[#64748B]">Occupation: <span className="font-medium text-[#1F2937] capitalize">{form.occupation}</span></p>
+                    <p className="text-[#64748B]">Qualification: <span className="font-medium text-[#1F2937] capitalize">{form.qualification}</span></p>
+                    <p className="text-[#64748B]">Income: <span className="font-medium text-[#1F2937]">{form.incomeRange}</span></p>
+                    <p className="text-[#64748B]">Category Interest: <span className="font-medium text-[#1F2937] capitalize">{form.categoryPreference}</span></p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setStep(2)}
+                    className="text-xs text-[#123B63] font-medium hover:underline"
+                  >
+                    Edit
+                  </button>
+                </div>
+
+                {/* Documents Summary */}
+                <div className="p-4 flex items-start justify-between">
+                  <div className="space-y-1">
+                    <p className="font-semibold text-[#1F2937] text-sm">Key Documents Available</p>
+                    <div className="flex flex-wrap gap-1.5 mt-1">
+                      {form.hasAadhaar && <span className="rounded bg-[#E7F5EE] text-[#13805B] px-2 py-0.5 text-[11px] font-medium">Aadhaar</span>}
+                      {form.hasMobileLinked && <span className="rounded bg-[#E7F5EE] text-[#13805B] px-2 py-0.5 text-[11px] font-medium">Mobile Linked</span>}
+                      {form.hasBankAccount && <span className="rounded bg-[#E7F5EE] text-[#13805B] px-2 py-0.5 text-[11px] font-medium">Bank Account</span>}
+                      {form.hasRationCard && <span className="rounded bg-[#E7F5EE] text-[#13805B] px-2 py-0.5 text-[11px] font-medium">Ration Card</span>}
+                      {form.hasIncomeCert && <span className="rounded bg-[#E7F5EE] text-[#13805B] px-2 py-0.5 text-[11px] font-medium">Income Cert</span>}
+                      {form.hasCasteCert && <span className="rounded bg-[#E7F5EE] text-[#13805B] px-2 py-0.5 text-[11px] font-medium">Caste Cert</span>}
+                      {form.hasDisabilityCert && <span className="rounded bg-[#E7F5EE] text-[#13805B] px-2 py-0.5 text-[11px] font-medium">Disability Cert</span>}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setStep(3)}
+                    className="text-xs text-[#123B63] font-medium hover:underline"
+                  >
+                    Edit
+                  </button>
+                </div>
+
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-6 border-t border-[#E2E8F0] flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={handleBack}
+                  className="btn-outline"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  <span>Back to Documents</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleFinalSubmit}
+                  className="btn-primary py-3 px-6 text-sm"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  <span>Discover Matching Schemes</span>
+                </button>
+              </div>
+
+            </div>
+          )}
+
+        </div>
+
       </div>
+
     </div>
   );
 }

@@ -1,80 +1,86 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { 
+  GraduationCap, 
+  Sprout, 
+  Heart, 
+  Activity, 
+  Briefcase, 
+  Coins, 
+  ArrowRight, 
+  FileText, 
+  CheckCircle2, 
+  Shield, 
+  Clock,
+  Sparkles
+} from "lucide-react";
 import Hero from "../components/Hero.jsx";
 import translations from "../translations.js";
-import { useNavigate } from "react-router-dom";
-import { saveProfile } from "../utils/storage.js";
+import { saveProfile, getRecentlyViewed } from "../utils/storage.js";
 
-const categories = [
-  {
-    id: "health",
-    title: "Health & Medical (स्वास्थ्य)",
-    icon: "🏥",
-    desc: "Ayushman Bharat (PM-JAY), PMMVY Maternity Cash, Free Checkups",
-    bg: "bg-red-50 text-red-900 border-red-200 hover:border-red-400",
-    catPref: "health",
-  },
+const CATEGORY_ITEMS = [
   {
     id: "education",
-    title: "Education & Scholarships (शिक्षा)",
-    icon: "🎓",
-    desc: "National Scholarship Portal (NSP), Fee Waivers, Student Aid",
-    bg: "bg-blue-50 text-blue-900 border-blue-200 hover:border-blue-400",
     catPref: "education",
-  },
-  {
-    id: "money",
-    title: "Financial & Cash Benefits (पैसा/धन)",
-    icon: "💰",
-    desc: "PM-Kisan ₹6000, PM Vishwakarma ₹3Lakh, PM Jan Dhan Account",
-    bg: "bg-emerald-50 text-emerald-900 border-emerald-200 hover:border-emerald-400",
-    catPref: "money",
+    title: "Scholarships & Students",
+    subtitle: "National Scholarship Portal (NSP), fee waivers & higher education grants",
+    icon: GraduationCap,
   },
   {
     id: "farmer",
-    title: "Farmers & Agriculture (किसान)",
-    icon: "🌾",
-    desc: "PM Kisan Samman Nidhi, Agriculture Subsidies, Soil Health",
-    bg: "bg-amber-50 text-amber-900 border-amber-200 hover:border-amber-400",
     catPref: "farmer",
-  },
-  {
-    id: "skill",
-    title: "Skill & Jobs (कौशल व रोजगार)",
-    icon: "🛠️",
-    desc: "PMKVY 4.0 Free Courses, e-Shram Card, PM Vishwakarma",
-    bg: "bg-indigo-50 text-indigo-900 border-indigo-200 hover:border-indigo-400",
-    catPref: "skill",
+    title: "Farmers & Agriculture",
+    subtitle: "PM-Kisan income support, crop insurance & agricultural subsidies",
+    icon: Sprout,
   },
   {
     id: "women",
-    title: "Women & Child Welfare (महिला)",
-    icon: "👩‍👧",
-    desc: "Sukanya Samriddhi Yojana, Maternity Cash, Lakhpati Didi",
-    bg: "bg-purple-50 text-purple-900 border-purple-200 hover:border-purple-400",
     catPref: "women",
+    title: "Women & Child Welfare",
+    subtitle: "Sukanya Samriddhi, PMMVY maternity benefits & self-help schemes",
+    icon: Heart,
   },
   {
-    id: "housing",
-    title: "Housing & Amenities (आवास)",
-    icon: "🏠",
-    desc: "PM Awas Yojana (Gramin & Urban), MGNREGA Job Card",
-    bg: "bg-orange-50 text-orange-900 border-orange-200 hover:border-orange-400",
-    catPref: "housing",
+    id: "health",
+    catPref: "health",
+    title: "Healthcare & Insurance",
+    subtitle: "Ayushman Bharat (PM-JAY) cashless hospital cover up to ₹5 Lakh",
+    icon: Activity,
+  },
+  {
+    id: "skill",
+    catPref: "skill",
+    title: "Artisans, Skill & Jobs",
+    subtitle: "PM Vishwakarma toolkits, PMKVY training & e-Shram worker benefits",
+    icon: Briefcase,
+  },
+  {
+    id: "money",
+    catPref: "money",
+    title: "Financial Assistance",
+    subtitle: "PM Jan Dhan, PM SVANidhi micro-loans & direct cash transfers",
+    icon: Coins,
   },
 ];
 
 export default function Home({ lang, setLang }) {
   const t = translations[lang] || translations.en;
   const navigate = useNavigate();
+  const [recentlyViewed, setRecentlyViewed] = useState([]);
+
+  useEffect(() => {
+    setRecentlyViewed(getRecentlyViewed());
+  }, []);
 
   const handleCategoryClick = (catPref) => {
     const profile = {
-      fullName: "User",
-      age: 25,
-      gender: "female",
+      fullName: "Citizen",
+      age: 26,
+      gender: "male",
       state: "Uttar Pradesh",
       areaType: "rural",
       qualification: "secondary",
-      occupation: "informal worker",
+      occupation: catPref === "farmer" ? "farmer" : catPref === "education" ? "student" : "informal worker",
       categoryPreference: catPref,
       incomeRange: "< ₹10,000",
       hasAadhaar: true,
@@ -82,132 +88,222 @@ export default function Home({ lang, setLang }) {
       hasBankAccount: true,
       hasRationCard: true,
       hasIncomeCert: true,
+      hasCasteCert: false,
+      hasDisabilityCert: false,
     };
     saveProfile(profile);
-    navigate("/results");
+    navigate(`/results?category=${catPref}`);
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 pb-20">
+    <main className="min-h-screen bg-[#F8FAFC]">
+      {/* Hero Section */}
       <Hero lang={lang} setLang={setLang} />
 
-      {/* Explore Schemes by Category Section */}
-      <section className="mx-auto max-w-screen-xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="text-center max-w-2xl mx-auto mb-8">
-          <span className="text-xs font-bold uppercase tracking-widest text-emerald-600 bg-emerald-100 px-3 py-1 rounded-full">
-            Browse By Category
-          </span>
-          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mt-2">
-            What Kind of Government Scheme Are You Looking For?
-          </h2>
-          <p className="text-slate-500 text-sm mt-1">
-            Select a scheme category below (Health, Education, Money, Farmers, etc.) to view verified government schemes instantly
-          </p>
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {categories.map((cat) => (
-            <div
-              key={cat.id}
-              onClick={() => handleCategoryClick(cat.catPref)}
-              className={`rounded-3xl border p-6 cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:shadow-lg ${cat.bg}`}
-            >
-              <div className="flex items-start gap-4">
-                <span className="text-4xl p-2 rounded-2xl bg-white/70 shadow-xs">{cat.icon}</span>
-                <div>
-                  <h3 className="text-lg font-bold text-slate-900">
-                    {cat.title}
-                  </h3>
-                  <p className="text-xs text-slate-700 mt-1 leading-relaxed">
-                    {cat.desc}
-                  </p>
-                </div>
+      {/* Recently Viewed Schemes Strip (if any exist) */}
+      {recentlyViewed.length > 0 && (
+        <section className="border-b border-[#E2E8F0] bg-white py-4">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2 text-xs font-medium text-[#64748B]">
+                <Clock className="h-4 w-4 text-[#123B63]" />
+                <span>Recently Viewed:</span>
               </div>
-              <div className="mt-4 flex items-center justify-between border-t border-slate-200/60 pt-3 text-xs font-bold">
-                <span>View {cat.title.split(' ')[0]} Schemes →</span>
-                <span className="text-emerald-700 bg-white/90 px-2.5 py-1 rounded-full shadow-xs">
-                  Official Portals ↗
-                </span>
+              <div className="flex flex-wrap items-center gap-2">
+                {recentlyViewed.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => navigate(`/results?scheme=${encodeURIComponent(item.id)}`)}
+                    className="inline-flex items-center gap-1.5 rounded-md border border-[#E2E8F0] bg-[#F8FAFC] px-2.5 py-1 text-xs font-medium text-[#1F2937] hover:border-[#123B63] hover:text-[#123B63] transition-colors"
+                  >
+                    <span>{item.name}</span>
+                    <ArrowRight className="h-3 w-3 text-[#64748B]" />
+                  </button>
+                ))}
               </div>
             </div>
-          ))}
+          </div>
+        </section>
+      )}
+
+      {/* Category Shortcuts Section */}
+      <section className="py-16 sm:py-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          
+          <div className="max-w-2xl mb-12">
+            <p className="text-xs font-bold uppercase tracking-wider text-[#123B63]">
+              Curated Discovery
+            </p>
+            <h2 className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight text-[#1F2937]">
+              Explore Schemes by Category
+            </h2>
+            <p className="mt-2 text-sm text-[#64748B]">
+              Jump straight into verified central and state welfare programs categorized for your specific needs.
+            </p>
+          </div>
+
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {CATEGORY_ITEMS.map((cat) => {
+              const IconComponent = cat.icon;
+              return (
+                <div
+                  key={cat.id}
+                  onClick={() => handleCategoryClick(cat.catPref)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') handleCategoryClick(cat.catPref);
+                  }}
+                  className="group relative rounded-xl border border-[#E2E8F0] bg-white p-6 transition-all duration-150 hover:border-[#123B63] hover:shadow-cardHover cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#123B63]/20"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#EAF2F8] text-[#123B63] group-hover:bg-[#123B63] group-hover:text-white transition-colors duration-150">
+                      <IconComponent className="h-5 w-5" />
+                    </div>
+                    <span className="text-xs font-medium text-[#64748B] group-hover:text-[#123B63] flex items-center gap-1 transition-colors">
+                      View schemes <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                    </span>
+                  </div>
+
+                  <h3 className="mt-4 text-base font-bold text-[#1F2937] group-hover:text-[#123B63] transition-colors">
+                    {cat.title}
+                  </h3>
+
+                  <p className="mt-1.5 text-xs text-[#64748B] leading-relaxed">
+                    {cat.subtitle}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-8 text-center">
+            <button
+              type="button"
+              onClick={() => navigate("/results")}
+              className="text-xs font-semibold text-[#123B63] hover:underline inline-flex items-center gap-1"
+            >
+              <span>Browse complete catalog of all schemes</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </button>
+          </div>
+
         </div>
       </section>
 
-      {/* How It Works Visual Section */}
-      <section className="mx-auto max-w-screen-xl px-4 py-10 sm:px-6 lg:px-8">
-        <div className="rounded-3xl bg-white p-8 shadow-card border border-slate-200/80">
-          <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-100 pb-6 mb-8">
+      {/* How It Works Section */}
+      <section id="how-it-works" className="border-t border-[#E2E8F0] bg-white py-16 sm:py-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
             <div>
-              <span className="text-xs font-bold uppercase tracking-widest text-emerald-600">
+              <p className="text-xs font-bold uppercase tracking-wider text-[#123B63]">
                 Simple & Transparent
-              </span>
-              <h2 className="text-2xl font-black text-slate-900 mt-1">
-                {t.howItWorks}
+              </p>
+              <h2 className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight text-[#1F2937]">
+                How HaqSetu Works
               </h2>
+              <p className="mt-2 text-sm text-[#64748B] max-w-xl">
+                A non-governmental discovery engine designed to bridge information gaps for Indian citizens.
+              </p>
             </div>
             <button
+              type="button"
               onClick={() => navigate("/check")}
-              className="mt-4 md:mt-0 btn-primary"
+              className="btn-primary self-start md:self-auto"
             >
-              <span>{t.startCheck}</span>
-              <span>→</span>
+              <span>Start Eligibility Check</span>
+              <ArrowRight className="h-4 w-4" />
             </button>
           </div>
 
           <div className="grid gap-6 md:grid-cols-3">
             {[
               {
-                num: "1",
-                icon: "✍️",
-                title: "Enter Details & Category",
-                desc: "Choose Health, Education, Money, or Farmers and enter basic age & location.",
+                step: "01",
+                title: "Enter Basic Profile",
+                description:
+                  "Share simple demographic details like age, location, occupation, and available documents in a confidential 3-step questionnaire.",
+                badge: "Takes < 2 mins",
               },
               {
-                num: "2",
-                icon: "📊",
-                title: "Get Verified Schemes",
-                desc: "Our engine checks official rulebooks and shows match scores.",
+                step: "02",
+                title: "Evaluate Rule Matches",
+                description:
+                  "Our rule engine analyzes your profile against official government eligibility criteria and calculates transparent match scores.",
+                badge: "Rule-Based Engine",
               },
               {
-                num: "3",
-                icon: "🛡️",
-                title: "Apply at Official Portals",
-                desc: "Follow document checklists and click direct links to .gov.in portals.",
+                step: "03",
+                title: "Apply on Official Portals",
+                description:
+                  "Review ready-to-use document checklists and follow direct links to apply securely on verified .gov.in portals.",
+                badge: "Direct Official Links",
               },
-            ].map((step) => (
+            ].map((item) => (
               <div
-                key={step.num}
-                className="rounded-2xl bg-slate-50 p-6 border border-slate-100 relative group transition hover:border-emerald-200"
+                key={item.step}
+                className="relative rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-6 transition-all duration-150 hover:bg-white hover:border-[#123B63] hover:shadow-card"
               >
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-3xl">{step.icon}</span>
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600 text-white font-bold text-sm">
-                    {step.num}
+                  <span className="text-2xl font-black text-[#123B63]/30 tracking-tight font-mono">
+                    {item.step}
+                  </span>
+                  <span className="rounded bg-white border border-[#E2E8F0] px-2 py-0.5 text-[10px] font-semibold text-[#64748B]">
+                    {item.badge}
                   </span>
                 </div>
-                <h3 className="text-lg font-bold text-slate-900">
-                  {step.title}
+                <h3 className="text-base font-bold text-[#1F2937]">
+                  {item.title}
                 </h3>
-                <p className="mt-2 text-sm text-slate-600 leading-relaxed">
-                  {step.desc}
+                <p className="mt-2 text-xs text-[#64748B] leading-relaxed">
+                  {item.description}
                 </p>
               </div>
             ))}
           </div>
+
         </div>
       </section>
 
-      {/* Floating Bottom Bar for Mobile Users */}
-      <div className="fixed bottom-4 left-4 right-4 z-40 md:hidden">
-        <button
-          onClick={() => navigate("/check")}
-          className="w-full rounded-2xl bg-emerald-600 py-4 px-6 text-center text-base font-bold text-white shadow-2xl flex items-center justify-center gap-2 active:scale-95 transition"
-        >
-          <span>🔍</span>
-          <span>{t.startCheck}</span>
-        </button>
-      </div>
+      {/* Trust & Fraud Advisory Banner */}
+      <section className="border-t border-[#E2E8F0] bg-[#EAF2F8] py-12">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex items-start gap-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#123B63] text-white">
+                <Shield className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-[#123B63]">
+                  100% Free Information • Zero Intermediary Fees
+                </h3>
+                <p className="mt-1 text-xs text-[#1F2937]/80 max-w-2xl leading-relaxed">
+                  HaqSetu never requests OTPs, passwords, or fees. Government scheme applications are strictly processed through official departments and verified Common Service Centres (CSC).
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 shrink-0">
+              <button
+                type="button"
+                onClick={() => navigate("/safety")}
+                className="btn-outline text-xs py-2 px-3.5"
+              >
+                Read Safety Guide
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate("/check")}
+                className="btn-primary text-xs py-2 px-3.5"
+              >
+                Check Eligibility
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }
